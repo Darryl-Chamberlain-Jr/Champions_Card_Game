@@ -3,10 +3,10 @@ import pygame
 import random
 
 class Suits(Enum):
-    clubs = 4
-    spades = 3
-    hearts = 2
-    diamonds = 1
+    Electrum = 4
+    Jewel = 3
+    Silver = 2
+    Copper = 1
 
 class Card:
     suit = None
@@ -16,7 +16,7 @@ class Card:
     def __init__(self, suit, value):
         self.suit = suit
         self.value = value
-        self.image = pygame.image.load('images/' + str(self.value) + '_of_' + self.suit.name + '.png')
+        self.image = pygame.image.load('images/' + str(self.value) + '_of_' + self.suit.name + '.jpeg')
 
 class Deck:
     cards = None
@@ -24,7 +24,7 @@ class Deck:
     def __init__(self):
         self.cards=[]
         for suit in Suits:
-            for value in ["ace", "jack", "king", "queen"]:
+            for value in ["Croc", "Pharoah", "Sphinx", "Dragon"]:
                 self.cards.append(Card(suit, value))
 
     def shuffle(self):
