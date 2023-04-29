@@ -1,62 +1,48 @@
 from enum import Enum
 import pygame
+import random
 from models import *
 
 class GameState(Enum):
-    THINKING = 0
-    FACEDOWN = 1
-    REVEAL = 2
-    ENDED = 3
+    INTRO = -1
+    START = 0
+    THINKING = 1
+    FACEDOWN = 2
+    REVEAL = 3
+    TALLYSCORE = 4
+    ENDED = 5
 
 class ChampionEngine:
-    deck = None
     player1 = None
     player2 = None
-    pile = None
     state = None
-    currentPlayer = None
     result = None
 
     def __init__(self):
-        self.deck = Deck()
-        self.deck.shuffle()
-        self.player1 = Player("Player 1")
-        self.player2 = Player("Player 2")
-        self.pile = Pile()
+        self.state = GameState.INTRO
+        self.player1 = Player("Player 1", Deck(), pygame.K_q, pygame.K_w, pygame.K_e)
+        self.player1.deck.shuffle()
+        
+        self.player2 = Player("Player 2", Deck(), pygame.K_q, pygame.K_w, pygame.K_e)
+        self.player2.deck.shuffle()
+        
         self.deal()
-        self.currentPlayer = self.player1
-        self.state = GameState.FACEDOWN
 
     def deal(self):
         for i in range(0, 3):
-            self.player1.draw(self.deck)
-            self.player2.draw(self.deck)
+            self.player1.draw()
+            self.player2.draw()
+    
+    def cpu_play_card(self):
+        self.player2.played_card = self.player2.hand.pop(random.randint(0, 2))
 
-    def switchPlayer(self):
-        if self.currentPlayer == self.player1:
-            self.currentPlayer = self.player2
+    # Go from THINKING to FACEDOWN
+    def play_card(self, key):
+        if key == pygame.K_q:
+            self.player1.played_card = self.player1.hand.pop(0)
+        elif key == pygame.K_w:
+            self.player1.played_card = self.player1.hand.pop(1)
+        elif key == pygame.K_e:
+            self.player1.played_card = self.player1.hand.pop(2)
         else:
-            self.currentPlayer = self.player1
-
-    def winBattle(self, player):
-        self.state = GameState.REVEAL
-        # Win - Loss - Draw values?
-
-    def play(self, key):
-        if key == None:
-            return 
-        
-        if self.state == GameState.ENDED:
-            return
-        
-        # Player 1 chooses a card to place face down
-
-        # Player 1 draws a card
-
-        # Player 2 chooses a card to place face down
-
-        # Player 2 draws a card
-
-        # Reveal both cards. Assign each player a Win, Loss, or Draw
-
-        
+            print('Incorrect key')

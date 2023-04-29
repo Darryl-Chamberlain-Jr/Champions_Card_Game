@@ -9,7 +9,7 @@ pygame.init()
 gameEngine=ChampionEngine()
 
 bounds = (1200, 800)
-window = pygame.display.set_mode(bounds)
+intro_window = pygame.display.set_mode(bounds)
 pygame.display.set_caption("Champions")
 
 cardBack = pygame.image.load('images/BACK.jpeg')
@@ -20,33 +20,43 @@ def scale_card_image(card_image):
 
 def renderIntro(window):
     window.fill((178, 144, 130))
-    font = pygame.font.SysFont('Times', 60, True)
-    window.blit(scale_card_image(cardBack), (650, 200))
-    win_loss_tie_text=font.render(f'W-L-T', True, (255,255,255))
-    window.blit(win_loss_tie_text, (700, 10))
-
-def renderGame(window):
-    window.fill((178, 144, 130))
-    font = pygame.font.SysFont('arial',60, True)
-    card_font = pygame.font.SysFont('arial', 30, True)
-
-    # Player 1 Hand
-    window.blit(scale_card_image(gameEngine.player1.hand[0].image), (50, 200))
-    window.blit(card_font.render(f'{gameEngine.player1.hand[0].suit.name}', True, (255,255,255)), (50, 400))
-    window.blit(card_font.render(f'{gameEngine.player1.hand[0].value}', True, (255,255,255)), (50, 435))
-
-    window.blit(scale_card_image(gameEngine.player1.hand[1].image), (200, 200))
-    window.blit(card_font.render(f'{gameEngine.player1.hand[1].suit.name}', True, (255,255,255)), (200, 400))
-    window.blit(card_font.render(f'{gameEngine.player1.hand[1].value}', True, (255,255,255)), (200, 435))
-
-    window.blit(scale_card_image(gameEngine.player1.hand[2].image), (350, 200))
-    window.blit(card_font.render(f'{gameEngine.player1.hand[2].suit.name}', True, (255,255,255)), (350, 400))
-    window.blit(card_font.render(f'{gameEngine.player1.hand[2].value}', True, (255,255,255)), (350, 435))
-    
     # Player 2 Hand
     window.blit(scale_card_image(cardBack), (650, 200))
     window.blit(scale_card_image(cardBack), (800, 200))
     window.blit(scale_card_image(cardBack), (950, 200))
+
+def renderStart(window):
+    window.fill((178, 144, 130))
+    font = pygame.font.SysFont('arial',60, True)
+    card_font = pygame.font.SysFont('arial', 30, True)
+    comparison_font = pygame.font.SysFont('arial', 200, True)
+
+
+
+    # Phases of Rendering Game
+        # Phase 1 - Player's full hand is shown and none are chosen
+        # Phase 2 - Player is highlighting one card in hand with a "Confirm" button
+        # Phase 3 - Player draws a new card, other card played.
+        # Phase 4 - CPU plays card, draws new card. 
+        # Phase 5 - Reveals the two cards. 
+        # Phase 6 - Update W-L-T scores, discard played cards
+
+    # Player 1 Hand full hand
+    player1_shift=50
+    keys_to_play=["Q", "W", "E"]
+    for index in range(0, len(gameEngine.player1.hand)):
+        window.blit(scale_card_image(gameEngine.player1.hand[index].image), (player1_shift, 200))
+        window.blit(card_font.render(f'{gameEngine.player1.hand[index].suit.name}', True, (255,255,255)), (player1_shift, 400))
+        window.blit(card_font.render(f'{gameEngine.player1.hand[index].value}', True, (255,255,255)), (player1_shift, 435))
+        window.blit(card_font.render(f'TO PLAY CARD PRESS', True, (255,255,255)), (100, 500))
+        window.blit(card_font.render(f'{keys_to_play[index]}', True, (255,255,255)), (player1_shift+50, 535))
+        player1_shift+=150
+    
+    # Player 2 Hand
+    player2_shift=650
+    for index in range(0, len(gameEngine.player2.hand)):
+        window.blit(scale_card_image(cardBack), (player2_shift, 200))
+        player2_shift+=150
 
     # Win - Loss - Tie
     win_loss_tie_text=font.render(f'W-L-T', True, (255,255,255))
@@ -60,36 +70,84 @@ def renderGame(window):
     window.blit(win_loss_tie_text, (700, 10))
     window.blit(w_l_t_p2, (720, 70))
 
-    # Strengths Legend
-    suit_strengths_statement=font.render('Copper < Silver < Electrum < Jewel', True, (255,255,255))
-    value_strengths_statement=font.render('Croc < Pharoah < Sphinx < Dragon', True, (255,255,255))
-    window.blit(suit_strengths_statement, (100, 675))
-    window.blit(value_strengths_statement, (100, 600))
-
-
-    topCard = gameEngine.pile.peek()
-    if (topCard != None):
-        window.blit(topCard.image, (400, 200))
-
-# Intro window
-renderIntro(window)
-pygame.display.update()
-pygame.time.delay(3000)
+    # Player 1 Choice
+    if gameEngine.state != GameState.REVEAL:
+        # Strengths Legend 
+        suit_strengths_statement=font.render('Jewel > Electrum > Silver > Copper', True, (255,255,255))
+        value_strengths_statement=font.render('Dragon > Sphinx > Pharoah > Croc', True, (255,255,255))
+        window.blit(value_strengths_statement, (100, 600))
+        window.blit(suit_strengths_statement, (100, 675))
+    elif gameEngine.state == GameState.REVEAL:
+        window.blit(scale_card_image(gameEngine.player1.played_card.image), (200, 600))
+        window.blit(scale_card_image(gameEngine.player2.played_card.image), (800, 600))
+        if gameEngine.player1.played_card.rank > gameEngine.player2.played_card.rank:
+            comparison_symbol=">"
+        elif gameEngine.player1.played_card.rank < gameEngine.player2.played_card.rank:
+            comparison_symbol="<"
+        else:
+            comparison_symbol="="
+        window.blit(comparison_font.render(f'{comparison_symbol}', True, (255,255,255)), (500, 600))
 
 run = True
 while run:
-    key = None;
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
-        if event.type == pygame.KEYDOWN:
-            key = event.key
+    key = None
 
-    gameEngine.play(key)
+#    if gameEngine.state == GameState.INTRO:
+#        print('Made it here')
+#        # Intro window
+#        renderIntro(intro_window)
+#        pygame.display.update()
+#        pygame.time.delay(3000)
 
-    renderGame(window)
+    start_window = pygame.display.set_mode(bounds)
+    pygame.display.set_caption("Champions")
+    renderStart(start_window)
     pygame.display.update()
 
-    if gameEngine.state == GameState.REVEAL:
-        pygame.time.delay(3000)
-        gameEngine.state = GameState.FACEDOWN
+    gameEngine.cpu_play_card()
+    gameEngine.player2.draw()
+
+    pygame.display.update()
+    pygame.time.delay(2000)
+    gameEngine.state = GameState.THINKING
+
+#    renderCPUFacedown(window)
+#    pygame.display.update()
+#    pygame.time.delay(3000)
+
+    while key not in [pygame.K_q, pygame.K_w, pygame.K_e]:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                break
+            if event.type == pygame.KEYDOWN:
+                key = event.key
+
+    gameEngine.play_card(key)
+    gameEngine.player1.draw()
+    gameEngine.state = GameState.REVEAL
+
+    renderStart(start_window)
+    pygame.display.update()
+    pygame.time.delay(3000)
+
+    if gameEngine.player1.played_card.rank > gameEngine.player2.played_card.rank:
+        gameEngine.player1.wins += 1
+        gameEngine.player2.losses += 1
+    elif gameEngine.player1.played_card.rank < gameEngine.player2.played_card.rank:
+        gameEngine.player1.losses += 1
+        gameEngine.player2.wins += 1
+    else: 
+        gameEngine.player1.ties += 1
+        gameEngine.player2.ties += 1
+    gameEngine.state = GameState.TALLYSCORE
+
+    # Clear played cards
+    gameEngine.player1.played_card = None
+    gameEngine.player2.played_card = None
+
+    if gameEngine.player1.deck.length() == 0:
+    #    renderCPUFacedown(window)
+    #    pygame.display.update()
+        gameEngine.state =GameState.ENDED
+        run = False
