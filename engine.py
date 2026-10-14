@@ -10,7 +10,8 @@ class GameState(Enum):
     FACEDOWN = 2
     REVEAL = 3
     TALLYSCORE = 4
-    ENDED = 5
+    FINALRESULT = 5
+    ENDED = 6
 
 class ChampionEngine:
     player1 = None

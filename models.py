@@ -67,6 +67,7 @@ class Player:
     wins = 0
     losses = 0
     ties = 0
+    score = 0
     card_1_key = None
     card_2_key = None
     card_3_key = None
